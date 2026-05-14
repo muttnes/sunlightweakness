@@ -23,8 +23,9 @@ public class Config {
         .comment("The amount of damage reduction that mobs receive when in sunlight.")
         .defineInRange("damageReduction", 0.5, 0.0, 1.0);
 
-    public static final ForgeConfigSpec.IntValue SPEED_REDUCTION_LEVEL = BUILDER.comment("Level of slowness applied to mobs during the day. (0 = mild, 4 = very strong)")
-    .defineInRange("speed_reduction_level", 1, 0, 10);
+    public static final ForgeConfigSpec.DoubleValue SPEED_REDUCTION = BUILDER
+        .comment("Movement speed reduction percentage during daytime. 0.30 = 30% slower.")
+        .defineInRange("speedReduction", 0.30, 0.0, 1.0);
 
     public static final ForgeConfigSpec.ConfigValue<List<String>> EXCLUDED_MOBS = BUILDER
         .comment("A list of mob names that are excluded from the sunlight weakness effect.")
@@ -39,8 +40,16 @@ public class Config {
         .define("includedMobs", new ArrayList<>(List.of("minecraft:zombie", "minecraft:skeleton")));
 
     public static boolean isMobExcluded(Mob mob) {
-        String mobID = ForgeRegistries.ENTITY_TYPES.getKey(mob.getType()).toString();
-        return EXCLUDED_MOBS.get().contains(mobID);
+
+        var key = ForgeRegistries.ENTITY_TYPES.getKey(mob.getType());
+
+        if (key == null) return false;
+
+        String fullId = key.toString();
+        String path = key.getPath();
+
+        return EXCLUDED_MOBS.get().contains(fullId)
+                || EXCLUDED_MOBS.get().contains(path);
     }
 
     public static boolean isMobIncludedByNamespace(Mob mob) {
@@ -49,8 +58,16 @@ public class Config {
     }
 
     public static boolean isMobIncluded(Mob mob) {
-        String mobID = ForgeRegistries.ENTITY_TYPES.getKey(mob.getType()).toString();
-        return INCLUDED_MOBS.get().contains(mobID);
+
+        var key = ForgeRegistries.ENTITY_TYPES.getKey(mob.getType());
+
+        if (key == null) return false;
+
+        String fullId = key.toString();
+        String path = key.getPath();
+
+        return INCLUDED_MOBS.get().contains(fullId)
+                || INCLUDED_MOBS.get().contains(path);
     }
 
     public static boolean isEnabled() {
@@ -61,7 +78,7 @@ public class Config {
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
-        System.out.println("Speed Reduction Level: " + SPEED_REDUCTION_LEVEL.get());
+        System.out.println("Speed Reduction Level: " + SPEED_REDUCTION.get());
         System.out.println("Damage Reduction: " + DAMAGE_REDUCTION.get());
         System.out.println("Excluded Mobs: " + EXCLUDED_MOBS.get());
         System.out.println("Included Mods: " + INCLUDED_MODS.get());
